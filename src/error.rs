@@ -1,31 +1,37 @@
 use std::fmt;
 
-#[doc = "Location where an error occurred"]
+/// Represents the location where an error occurred
 #[derive(Debug)]
 pub struct Location {
+    /// The source file where the error occurred
     pub file: &'static str,
+    /// The line number where the error occurred
     pub line: u32,
 }
 
-#[doc = "Main error type for the ferropin library"]
+/// Main error type for the ferropin library
+///
+/// Contains both the error kind and location information for debugging.
 #[derive(Debug)]
 pub struct Error {
+    /// The specific type of error that occurred
     pub kind: ErrorKind,
+    /// Location information for where the error occurred
     pub location: Location,
 }
 
-#[doc = "Different categories of errors that can occur"]
+/// Different categories of errors that can occur
 #[derive(Debug)]
 pub enum ErrorKind {
-    #[doc = "I/O error occurred"]
+    /// An I/O error occurred (e.g., failure to read/write to a device file)
     Io(std::io::Error),
-    #[doc = "Invalid pin number was specified"]
+    /// An invalid pin number was specified
     InvalidPin(u8),
-    #[doc = "I2C device did not acknowledge a transmission"]
+    /// An I2C device did not acknowledge a transmission
     I2cNack,
-    #[doc = "I2C operation timed out"]
+    /// An I2C operation timed out
     I2cTimeout,
-    #[doc = "Error specific to the display device"]
+    /// An error specific to the display device
     DisplayError(&'static str),
 }
 
@@ -51,8 +57,19 @@ impl fmt::Display for ErrorKind {
     }
 }
 
+/// A type alias for Results that use the ferropin Error type
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// Create a new error with automatic location tracking
+///
+/// # Example
+///
+/// ```
+/// # use ferropin::error::{err, ErrorKind};
+/// # fn might_fail() -> Result<(), ferropin::error::Error> {
+/// return Err(err!(ErrorKind::I2cNack));
+/// # }
+/// ```
 #[macro_export]
 macro_rules! err {
     ($kind:expr) => {
@@ -66,6 +83,21 @@ macro_rules! err {
     };
 }
 
+/// Convert a Result<T, std::io::Error> into Result<T, Error>
+///
+/// This is useful when calling standard library functions that return std::io::Error
+/// and you want to convert them to the ferropin error type.
+///
+/// # Example
+///
+/// ```
+/// # use ferropin::error::try_io;
+/// # use std::fs::File;
+/// # fn open_device() -> Result<File, ferropin::error::Error> {
+/// let file = try_io!(File::open("/dev/i2c-1"));
+/// # Ok(file)
+/// # }
+/// ```
 #[macro_export]
 macro_rules! try_io {
     ($expr:expr) => {

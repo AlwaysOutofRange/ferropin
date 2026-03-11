@@ -1,41 +1,45 @@
-#[doc = "Control byte for command data"]
+//! SSD1306 command definitions for the ferropin crate.
+//!
+//! This module contains constants for SSD1306 OLED display commands.
+
+/// Control byte for command data
 pub const CTRL_CMD: u8 = 0x00;
-#[doc = "Control byte for display data"]
+/// Control byte for display data
 pub const CTRL_DATA: u8 = 0x40;
 
-#[doc = "Display off command"]
+/// Display off command
 pub const CMD_DISPLAY_OFF: u8 = 0xAE;
-#[doc = "Display on command"]
+/// Display on command
 pub const CMD_DISPLAY_ON: u8 = 0xAF;
-#[doc = "Set contrast command"]
+/// Set contrast command
 pub const CMD_SET_CONTRAST: u8 = 0x81;
-#[doc = "Entire display on (all pixels on)"]
+/// Entire display on (all pixels on)
 pub const CMD_ENTIRE_DISPLAY_ON: u8 = 0xA4;
-#[doc = "Set normal display (not inverted)"]
+/// Set normal display (not inverted)
 pub const CMD_SET_NORMAL_DISPLAY: u8 = 0xA6;
-#[doc = "Set mux ratio (for display height)"]
+/// Set mux ratio (for display height)
 pub const CMD_SET_MUX_RATIO: u8 = 0xA8;
-#[doc = "Set display offset"]
+/// Set display offset
 pub const CMD_SET_DISPLAY_OFFSET: u8 = 0xD3;
-#[doc = "Set display clock divide ratio/oscillator frequency"]
+/// Set display clock divide ratio/oscillator frequency
 pub const CMD_SET_DISPLAY_CLOCK: u8 = 0xD5;
-#[doc = "Set pre-charge period"]
+/// Set pre-charge period
 pub const CMD_SET_PRECHARGE: u8 = 0xD9;
-#[doc = "Set COM pins hardware configuration"]
+/// Set COM pins hardware configuration
 pub const CMD_SET_COM_PINS: u8 = 0xDA;
-#[doc = "Set V_COMH deselect level"]
+/// Set V_COMH deselect level
 pub const CMD_SET_VCOM_DESELECT: u8 = 0xDB;
-#[doc = "Set display start line"]
+/// Set display start line
 pub const CMD_SET_START_LINE: u8 = 0x40;
-#[doc = "Set segment remap (column address mapping)"]
+/// Set segment remap (column address mapping)
 pub const CMD_SET_SEGMENT_REMAP: u8 = 0xA1;
-#[doc = "Set COM output scan direction"]
+/// Set COM output scan direction
 pub const CMD_SET_COM_SCAN_DIR: u8 = 0xC8;
-#[doc = "Set memory addressing mode"]
+/// Set memory addressing mode
 pub const CMD_SET_MEMORY_MODE: u8 = 0x20;
-#[doc = "Set column address"]
+/// Set column address
 pub const CMD_SET_COL_ADDR: u8 = 0x21;
-#[doc = "Set page address"]
+/// Set page address
 pub const CMD_SET_PAGE_ADDR: u8 = 0x22;
-#[doc = "Charge pump setting"]
+/// Charge pump setting
 pub const CMD_CHARGE_PUMP: u8 = 0x8D;
