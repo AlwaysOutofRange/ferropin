@@ -5,8 +5,7 @@
 
 use crate::{
     display::ssd1306::{
-        cmd::*,
-        framebuffer::{FrameBuffer, PAGES, WIDTH},
+        cmd::*, fonts::{CHAR_H, CHAR_W, TextStyle, get_char_columns}, framebuffer::{FrameBuffer, PAGES, WIDTH}
     },
     error::Result,
     i2c::I2c,
@@ -18,6 +17,8 @@ pub mod cmd;
 pub mod framebuffer;
 /// Display initialization sequences
 pub mod init;
+
+pub mod fonts;
 
 /// Default I2C address for SSD1306 displays
 const SSD1306_ADDR: u8 = 0x3C;
@@ -49,48 +50,6 @@ impl<B: I2c> Ssd1306<B> {
             framebuffer: FrameBuffer::new(),
         };
         display.init()?;
-
-        Ok(display)
-    }
-
-    /// Create a new SSD1306 display instance without initialization
-    ///
-    /// This is useful when you want to configure the display manually.
-    ///
-    /// # Arguments
-    ///
-    /// * `bus` - An I2C bus implementation
-    ///
-    /// # Returns
-    ///
-    /// An uninitialized Ssd1306 instance
-    pub fn new_uninit(bus: B) -> Self {
-        Ssd1306 {
-            bus,
-            framebuffer: FrameBuffer::new(),
-        }
-    }
-
-    /// Create a new SSD1306 display instance with memory mode configuration
-    ///
-    /// This sets up the display with horizontal addressing mode.
-    ///
-    /// # Arguments
-    ///
-    /// * `bus` - An I2C bus implementation
-    ///
-    /// # Returns
-    ///
-    /// A Result containing the new Ssd1306 instance or an error
-    pub fn new_takeover(bus: B) -> Result<Self> {
-        let mut display = Ssd1306 {
-            bus,
-            framebuffer: FrameBuffer::new(),
-        };
-
-        display.cmd(CMD_SET_MEMORY_MODE, &[0x00])?;
-        display.cmd(CMD_SET_COL_ADDR, &[0, (WIDTH - 1) as u8])?;
-        display.cmd(CMD_SET_PAGE_ADDR, &[0, (PAGES - 1) as u8])?;
 
         Ok(display)
     }
@@ -197,5 +156,39 @@ impl<B: I2c> Ssd1306<B> {
     /// A Result indicating success or failure
     pub fn set_contrast(&mut self, contrast: u8) -> Result<()> {
         self.cmd(CMD_SET_CONTRAST, &[contrast])
+    }
+
+    pub fn draw_char(&mut self, x: usize, y: usize, c: char, style: TextStyle) {
+        let cols = get_char_columns(c, style);
+        let scale = style.scale as usize;
+
+        for col in 0..CHAR_W {
+            let byte = cols[col];
+            for row in 0..CHAR_H {
+                let on = (byte >> row) & 1 == 1;
+                for sx in 0..scale {
+                    for sy in 0..scale {
+                        let px = x + col * scale + sx;
+                        let py = y + row * scale + sy;
+                        
+                        self.framebuffer.set_pixel(px, py, on);
+                    }
+                }
+            }
+        }
+    }
+
+    pub fn draw_text(&mut self, x: usize, y: usize, text: &str, style: TextStyle) {
+        let char_w = CHAR_W * style.scale as usize;
+        let mut cx = x;
+
+        for c in text.chars() {
+            if cx + char_w > framebuffer::WIDTH {
+                break;
+            }
+
+            self.draw_char(cx, y, c, style);
+            cx += char_w;
+        }
     }
 }

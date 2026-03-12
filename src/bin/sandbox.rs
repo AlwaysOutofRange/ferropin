@@ -2,7 +2,7 @@
 use std::{thread::sleep, time::Duration};
 
 use ferropin::{
-    display::ssd1306::Ssd1306,
+    display::ssd1306::{Ssd1306, fonts::TextStyle},
     gpio::{Direction, chardev::ChardevPin},
     i2c::{I2c, bitbang::BitbangI2c, hardware::HardwareI2c},
 };
@@ -17,7 +17,12 @@ fn main() {
     // }
     //
 
-    if let Err(e) = display_test_via_hardwarei2c() {
+    // if let Err(e) = display_test_via_hardwarei2c() {
+    //     eprintln!("{}", e);
+    //     std::process::exit(1);
+    // }
+
+    if let Err(e) = display_test_text() {
         eprintln!("{}", e);
         std::process::exit(1);
     }
@@ -77,6 +82,21 @@ fn display_test_via_hardwarei2c() -> ferropin::error::Result<()> {
     }
     display.flush()?;
     sleep(Duration::from_secs(3));
+
+    Ok(())
+}
+
+fn display_test_text() -> ferropin::error::Result<()> {
+    let i2c = HardwareI2c::new(1)?;
+    let mut display = Ssd1306::new(i2c)?;
+
+    display.clear();
+    display.draw_text(0,  0, "Hello World!",  TextStyle::normal());
+    display.draw_text(0, 10, "BOLD TEXT",     TextStyle::bold());
+    display.draw_text(0, 20, "Italic text",   TextStyle::italic());
+    display.draw_text(0, 32, "BIG",           TextStyle::large());
+    display.draw_text(0, 50, "ferropin v0.1", TextStyle::normal());
+    display.flush()?;
 
     Ok(())
 }
