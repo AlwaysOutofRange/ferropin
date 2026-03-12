@@ -2,5 +2,7 @@
 name = "ferropin"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
+description = "Bare-metal Rust library for hardware interaction on Linux (ARM64)"
 
 [dependencies]
