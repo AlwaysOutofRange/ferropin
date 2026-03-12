@@ -1,8 +1,3 @@
-//! GPIO character device interface for the ferropin crate.
-//!
-//! This module provides an implementation of the `GpioPin` trait using the Linux
-//! GPIO character device interface (`/dev/gpiochip*`).
-
 use std::{
     fs::OpenOptions,
     os::fd::{AsRawFd, RawFd},
@@ -15,83 +10,38 @@ use crate::{
     sys_utils, try_io,
 };
 
-/// Maximum size for GPIO line consumer labels
 const GPIO_MAX_NAME_SIZE: usize = 32;
-/// Maximum number of handles that can be requested in a single ioctl call
 const GPIOHANDLES_MAX: usize = 64;
-/// Flag for requesting a line as input
 const GPIOHANDLE_REQUEST_INPUT: u32 = 1 << 0;
-/// Flag for requesting a line as output
 const GPIOHANDLE_REQUEST_OUTPUT: u32 = 1 << 1;
-/// Ioctl request to get a line handle
 const GPIO_GET_LINEHANDLE_IOCTL: u64 = 0xC16CB403;
-/// Ioctl request to get line values
 const GPIOHANDLE_GET_LINE_VALUES_IOCTL: u64 = 0xC040B408;
-/// Ioctl request to set line values
 const GPIOHANDLE_SET_LINE_VALUES_IOCTL: u64 = 0xC040B409;
 
-/// Request structure for GPIO line handle ioctl
 #[repr(C)]
 struct GpiohandleRequest {
-    /// Offsets of the lines to request (relative to the chip)
     lineoffsets: [u32; GPIOHANDLES_MAX],
-    /// Flags for the request (input/output)
     flags: u32,
-    /// Default values for the lines (for output lines)
     default_values: [u8; GPIOHANDLES_MAX],
-    /// Consumer label (identifies what is using the line)
     consumer_label: [u8; GPIO_MAX_NAME_SIZE],
-    /// Number of lines being requested
     lines: u32,
-    /// File descriptor for the line handle (output parameter)
     fd: i32,
 }
 
-/// Data structure for GPIO line values ioctl
 #[repr(C)]
 struct GpiohandleData {
-    /// Values of the lines (0 or 1 for each line)
     values: [u8; GPIOHANDLES_MAX],
 }
 
-/// A GPIO pin implemented using the Linux character device interface
-///
-/// This struct represents a single GPIO pin accessed via the character device
-/// interface. It implements the `GpioPin` trait, providing methods to set,
-/// read, and configure the pin.
+/// GPIO pin via Linux chardev interface (`/dev/gpiochip*`).
 pub struct ChardevPin {
-    /// Path to the GPIO chip device file (e.g., "/dev/gpiochip0")
     chip_path: String,
-    /// File descriptor for the line handle
     line_fd: RawFd,
-    /// The pin number on the chip
     pin: u8,
-    /// Current direction of the pin (input or output)
     direction: Direction,
 }
 
 impl ChardevPin {
-    /// Create a new ChardevPin instance
-    ///
-    /// # Arguments
-    ///
-    /// * `chip` - Path to the GPIO chip device (e.g., "/dev/gpiochip0")
-    /// * `pin` - The pin number on the chip
-    /// * `direction` - Initial direction for the pin (input or output)
-    ///
-    /// # Returns
-    ///
-    /// A Result containing the new ChardevPin instance or an error
-    ///
-    /// # Example
-    ///
-    /// ```
-    /// use ferropin::gpio::{Direction, chardev::ChardevPin};
-    /// use ferropin::error::Result;
-    ///
-    /// let pin = ChardevPin::new("/dev/gpiochip0", 18, Direction::Output)?;
-    /// # Ok::<(), ferropin::error::Error>(())
-    /// ```
     pub fn new(chip: &str, pin: u8, direction: Direction) -> Result<Self> {
         let line_fd = Self::request_line(chip, pin, direction)?;
         Ok(ChardevPin {
@@ -102,7 +52,6 @@ impl ChardevPin {
         })
     }
 
-    /// Request a line handle for a specific pin on a GPIO chip
     fn request_line(chip: &str, pin: u8, direction: Direction) -> Result<RawFd> {
         let chip_file = try_io!(OpenOptions::new().read(true).write(true).open(chip));
         let chip_fd = chip_file.as_raw_fd();
@@ -139,7 +88,6 @@ impl ChardevPin {
         Ok(req.fd)
     }
 
-    /// Write a value to the GPIO line
     fn write_value(&self, value: u8) -> Result<()> {
         let mut data = GpiohandleData {
             values: [0u8; GPIOHANDLES_MAX],
@@ -160,17 +108,14 @@ impl ChardevPin {
 }
 
 impl GpioPin for ChardevPin {
-    /// Set the pin to a high voltage level
     fn set_high(&mut self) -> Result<()> {
         self.write_value(1)
     }
 
-    /// Set the pin to a low voltage level (ground)
     fn set_low(&mut self) -> Result<()> {
         self.write_value(0)
     }
 
-    /// Read the current value of the pin
     fn read(&self) -> Result<bool> {
         let mut data = GpiohandleData {
             values: [0u8; GPIOHANDLES_MAX],
@@ -188,7 +133,6 @@ impl GpioPin for ChardevPin {
         Ok(data.values[0] != 0)
     }
 
-    /// Set the direction of the pin (input or output)
     fn set_direction(&mut self, direction: Direction) -> Result<()> {
         if self.direction == direction {
             return Ok(());
@@ -204,7 +148,6 @@ impl GpioPin for ChardevPin {
 }
 
 impl Drop for ChardevPin {
-    /// Close the line handle file descriptor when the ChardevPin is dropped
     fn drop(&mut self) {
         sys_utils::close(self.line_fd);
     }

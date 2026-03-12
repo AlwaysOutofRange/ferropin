@@ -1,30 +1,18 @@
+//! Direct ARM64 syscall wrappers (no libc).
+
 use std::{arch::asm, os::fd::RawFd};
 
-// System call numbers for ARM64 (aarch64)
 const SYS_OPENAT: i64 = 56;
 const SYS_IOCTL: i64 = 29;
 const SYS_CLOSE: i64 = 57;
 const SYS_WRITE: i64 = 64;
 const SYS_READ: i64 = 63;
 
-// File descriptor for current working directory (used with openat)
 const AT_FDCWD: i64 = -100;
 
-/// I2C slave mode ioctl request
 pub const I2C_SLAVE: u64 = 0x0703;
-/// Open file for reading and writing
 pub const O_RDWR: i64 = 2;
 
-/// Open a file using the openat system call
-///
-/// # Arguments
-///
-/// * `path` - Pointer to the null-terminated path string
-/// * `flags` - Open flags (e.g., O_RDWR)
-///
-/// # Returns
-///
-/// File descriptor on success, negative error code on failure
 pub fn open(path: *const u8, flags: i64) -> i64 {
     unsafe {
         let ret: i64;
@@ -42,17 +30,6 @@ pub fn open(path: *const u8, flags: i64) -> i64 {
     }
 }
 
-/// Write data to a file descriptor
-///
-/// # Arguments
-///
-/// * `fd` - File descriptor to write to
-/// * `buf` - Pointer to the data buffer
-/// * `len` - Number of bytes to write
-///
-/// # Returns
-///
-/// Number of bytes written on success, negative error code on failure
 pub fn write(fd: RawFd, buf: *const u8, len: usize) -> i64 {
     unsafe {
         let ret: i64;
@@ -69,17 +46,6 @@ pub fn write(fd: RawFd, buf: *const u8, len: usize) -> i64 {
     }
 }
 
-/// Read data from a file descriptor
-///
-/// # Arguments
-///
-/// * `fd` - File descriptor to read from
-/// * `buf` - Pointer to the buffer where data will be stored
-/// * `len` - Maximum number of bytes to read
-///
-/// # Returns
-///
-/// Number of bytes read on success, negative error code on failure
 pub fn read(fd: RawFd, buf: *mut u8, len: usize) -> i64 {
     unsafe {
         let ret: i64;
@@ -96,17 +62,6 @@ pub fn read(fd: RawFd, buf: *mut u8, len: usize) -> i64 {
     }
 }
 
-/// Perform an ioctl request on a file descriptor
-///
-/// # Arguments
-///
-/// * `fd` - File descriptor to perform ioctl on
-/// * `request` - The ioctl request number
-/// * `arg` - Argument pointer (often cast to u64)
-///
-/// # Returns
-///
-/// 0 on success, negative error code on failure
 pub fn ioctl(fd: RawFd, request: u64, arg: u64) -> i64 {
     unsafe {
         let ret: i64;
@@ -123,15 +78,6 @@ pub fn ioctl(fd: RawFd, request: u64, arg: u64) -> i64 {
     }
 }
 
-/// Close a file descriptor
-///
-/// # Arguments
-///
-/// * `fd` - File descriptor to close
-///
-/// # Returns
-///
-/// 0 on success, negative error code on failure
 pub fn close(fd: RawFd) -> i64 {
     unsafe {
         let ret: i64;

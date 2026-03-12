@@ -1,10 +1,10 @@
 # Ferropin
 
-A Rust library for GPIO, I2C, and SSD1306 OLED display interaction on Linux.
+A bare-metal Rust library for hardware interaction on Linux (ARM64). Currently provides GPIO, I2C, and SSD1306 display support.
 
 ## Disclaimer
 
-This project is primarily developed for personal use. Contributions and pull requests for additional features, improvements, or compatibility with other hardware are welcome.
+This is a personal project. Pull requests to extend functionality are welcome.
 
 ## License
 

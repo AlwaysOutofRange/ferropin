@@ -105,17 +105,47 @@ pub const CHAR_H: usize = 8;
 
 #[derive(Clone, Copy)]
 pub struct TextStyle {
-    pub scale:  u8,   // 1 = 6x8, 2 = 12x16, 3 = 18x24
-    pub bold:   bool,
+    pub scale: u8, // 1 = 6x8, 2 = 12x16, 3 = 18x24
+    pub bold: bool,
     pub italic: bool,
 }
 
 impl TextStyle {
-    pub const fn normal()  -> Self { TextStyle { scale: 1, bold: false, italic: false } }
-    pub const fn bold()    -> Self { TextStyle { scale: 1, bold: true,  italic: false } }
-    pub const fn italic()  -> Self { TextStyle { scale: 1, bold: false, italic: true  } }
-    pub const fn large()   -> Self { TextStyle { scale: 2, bold: false, italic: false } }
-    pub const fn large_bold() -> Self { TextStyle { scale: 2, bold: true, italic: false } }
+    pub const fn normal() -> Self {
+        TextStyle {
+            scale: 1,
+            bold: false,
+            italic: false,
+        }
+    }
+    pub const fn bold() -> Self {
+        TextStyle {
+            scale: 1,
+            bold: true,
+            italic: false,
+        }
+    }
+    pub const fn italic() -> Self {
+        TextStyle {
+            scale: 1,
+            bold: false,
+            italic: true,
+        }
+    }
+    pub const fn large() -> Self {
+        TextStyle {
+            scale: 2,
+            bold: false,
+            italic: false,
+        }
+    }
+    pub const fn large_bold() -> Self {
+        TextStyle {
+            scale: 2,
+            bold: true,
+            italic: false,
+        }
+    }
 }
 
 /// Get the 6 column bytes for a character, with style applied
@@ -139,8 +169,8 @@ pub fn get_char_columns(c: char, style: TextStyle) -> [u8; 6] {
     // creates a lean effect across the glyph
     if style.italic {
         cols[0] = (cols[0] as i8 >> 1) as u8; // lean top-left
-        cols[1] = cols[1];                      // center unchanged
-        cols[4] = cols[4] << 1;              // lean bottom-right
+        cols[1] = cols[1]; // center unchanged
+        cols[4] = cols[4] << 1; // lean bottom-right
     }
 
     cols
